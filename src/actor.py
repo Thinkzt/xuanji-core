@@ -12,9 +12,8 @@ import uuid
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
-from queue import PriorityQueue
 import threading
-import json
+
 
 # ============== 核心枚举 ==============
 
@@ -121,6 +120,11 @@ class AgentActor:
         """发送消息到Mailbox"""
         await self.mailbox.put(message)
     
+    async def _send_response(self, target: str, message: Message):
+        """发送响应消息到目标Agent"""
+        # 简化实现：打印日志，生产环境应通过Router发送
+        print(f"📤 {self} -> {target}: {message.type.value}")
+    
     async def _process_messages(self):
         """消息处理循环"""
         while self._running:
@@ -179,16 +183,14 @@ class AgentActor:
                 duration=duration
             )
             
-            # 发送结果
-            response_msg = Message(
+            # 发送结果到发送者
+            await self._send_response(message.sender, Message(
                 type=MessageType.RESULT,
                 payload=result_obj,
                 sender=self.agent_id,
                 target=message.sender,
                 priority=Priority.P0_URGENT
-            )
-            # 这里应该发送到发送者的mailbox，简化处理打印
-            print(f"✅ {self} 任务完成: {task.task_id} ({duration:.2f}s)")
+            ))
             
         except asyncio.TimeoutError:
             self.error_count += 1
@@ -234,7 +236,7 @@ class AgentActor:
     
     async def _handle_heartbeat(self, message: Message):
         """心跳响应"""
-        response = Message(
+        await self._send_response(message.sender, Message(
             type=MessageType.RESULT,
             payload={
                 "agent_id": self.agent_id,
@@ -248,8 +250,7 @@ class AgentActor:
             sender=self.agent_id,
             target=message.sender,
             priority=Priority.P0_URGENT
-        )
-        print(f"💓 {self} 心跳响应: {self.status}")
+        ))
     
     async def _handle_shutdown(self, message: Message):
         """关闭处理"""
