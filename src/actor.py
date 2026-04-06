@@ -87,7 +87,7 @@ class AgentActor:
     def __init__(self, agent_id: str, name: str = ""):
         self.agent_id = agent_id
         self.name = name or agent_id
-        self.mailbox = asyncio.PriorityQueue()
+        self.mailbox: asyncio.PriorityQueue[Message] = asyncio.PriorityQueue()
         self.state: Dict[str, Any] = {}
         self.skills: Dict[str, Any] = {}
         self.tools: Dict[str, Callable] = {}
@@ -348,7 +348,7 @@ class MessageRouter:
     async def route(self, message: Message):
         """路由消息"""
         target_agent = message.target or "default"
-        agent_id = self.routes.get(target_agent)
+        agent_id: str = self.routes.get(target_agent) or ""
         
         if not agent_id:
             # 默认路由到第一个可用Agent
@@ -356,6 +356,10 @@ class MessageRouter:
             if agents:
                 agent_id = agents[0].agent_id
         
+        if not agent_id:
+            print(f"❌ 路由失败: 无可用Agent")
+            return
+            
         agent = self.manager.get_agent(agent_id)
         if agent and agent.status == "running":
             await agent.send(message)
