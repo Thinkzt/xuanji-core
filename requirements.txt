@@ -1,0 +1,21 @@
+# 璇玑Agent Core 依赖
+# Python 3.11+
+
+# 核心依赖
+asyncio-redis >= 0.16.0      # Redis异步客户端
+uvicorn >= 0.27.0             # ASGI服务器
+fastapi >= 0.109.0            # Web框架
+websockets >= 12.0            # WebSocket支持
+grpcio >= 1.60.0              # gRPC支持
+grpcio-tools >= 1.60.0       # gRPC工具
+
+# 数据处理
+pydantic >= 2.5.0             # 数据验证
+msgpack >= 1.0.0              # 高效序列化
+
+# 工具库
+PyYAML >= 6.0                 # 配置管理
+python-dotenv >= 1.0.0        # 环境变量
+
+# 可选依赖
+# redis >= 5.0.0             # Redis同步客户端（需要Redis服务器）
